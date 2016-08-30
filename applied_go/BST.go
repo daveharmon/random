@@ -10,6 +10,8 @@ import (
 	"log"
 )
 
+/* --------------- Generic Subtree --------------- */
+
 type Node struct {
 	Value string
 	Data string
@@ -161,5 +163,107 @@ func (n *Node) Delete (s string, parent *Node) error {
 
 		return replacement.Delete(replacement.Value, replParent)
 	}
+}
+
+/* --------------- Tree with Root --------------- */
+
+type Tree struct {
+	Root *Node
+}
+
+/* 
+ *	Tree insert calls Node.Insert() unless the root is nil
+ *	in which case we create the root 
+ */
+func (t *Tree) Insert (value, data string) error {
+	if t.Root == nil {
+		t.Root = &Node{Value: value, Data: data}
+		return nil
+	}
+	return t.Root.Insert(value, data)	// this may throw error
+}
+
+/*
+ *	Calls node.Find unless root is nil
+ * 	Passes a fake parent so that we don't have to worry if we are root
+ */
+func (t *Tree) Find (s string) (string, bool) {
+	if t.Root == nil {
+		return "", false
+	}
+	return t.Root.Find(s)
+}
+
+/*
+ *	Calls node.Delete unless the tree is empty (nil root)
+ */
+func (t *Tree) Delete (s string) error {
+	if t.Root == nil {
+		return errors.New("Cannot delete from an empty tree")
+	}
+
+	fakeParent := &Node{Right: t.Root}
+	return t.Root.Delete(s, fakeParent)
+}
+
+/*
+ *	Traverse performs an in order traversal on the tree and performs
+ *	some function on each node
+ */
+func (t *Tree) Traverse (n *Node, f func(*Node)) {
+	if n == nil {
+		return
+	}
+	t.Traverse(n.Left, f)
+	f(n)
+	t.Traverse(n.Right, f)
+}
+
+/* test copied from https://github.com/AppliedGo/bintree/blob/master/bintree.go */
+
+/* 	## A Couple Of Tree Operations
+ *	Our `main` function does a quick sort by filling a tree and reading
+ * 	it out again. Then it searches for a particular node. No fancy output 
+ * 	to see here; this is just the proof that the whole code above works as it should.
+ */
+
+// `main`
+func main() {
+
+	// Set up a slice of strings.
+	values := []string{"d", "b", "c", "e", "a"}
+	data := []string{"delta", "bravo", "charlie", "echo", "alpha"}
+
+	// Create a tree and fill it from the values.
+	tree := &Tree{}
+	for i := 0; i < len(values); i++ {
+		err := tree.Insert(values[i], data[i])
+		if err != nil {
+			log.Fatal("Error inserting value '", values[i], "': ", err)
+		}
+	}
+
+	// Print the sorted values.
+	fmt.Print("Sorted values: | ")
+	tree.Traverse(tree.Root, func(n *Node) { fmt.Print(n.Value, ": ", n.Data, " | ") })
+	fmt.Println()
+
+	// Find values.
+	s := "d"
+	fmt.Print("Find node '", s, "': ")
+	d, found := tree.Find(s)
+	if !found {
+		log.Fatal("Cannot find '" + s + "'")
+	}
+	fmt.Println("Found " + s + ": '" + d + "'")
+
+	// Delete a value.
+	err := tree.Delete(s)
+	if err != nil {
+		log.Fatal("Error deleting "+s+": ", err)
+	}
+	fmt.Print("After deleting '" + s + "': ")
+	tree.Traverse(tree.Root, func(n *Node) { fmt.Print(n.Value, ": ", n.Data, " | ") })
+	fmt.Println()
 }
 
