@@ -13,6 +13,11 @@
  *	an input is a member of something or it is not.
  */
 
+/* 
+ *	requires:
+ *	go get github.com/appliedgo/perceptron/draw
+ */
+
  package main
 
 import (
