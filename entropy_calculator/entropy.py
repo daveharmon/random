@@ -1,4 +1,5 @@
 import math as math
+import argparse
 
 def entropy(string):
         "Calculates the Shannon entropy of a string"
@@ -19,3 +20,11 @@ def entropy_ideal(length):
 
         return -1.0 * length * prob * math.log(prob) / math.log(2.0)
 
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--input_file', dest='in_file', action='store_true')
+    parser.add_argument('-o', '--output_file', dest='out_file', action='store_true')
+    args = parser.parse_args()
+
+    for line in parser.in_file:
+    	print 'test'
