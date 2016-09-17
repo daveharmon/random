@@ -22,9 +22,9 @@ def entropy_ideal(length):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input_file', dest='in_file', action='store_true')
-    parser.add_argument('-o', '--output_file', dest='out_file', action='store_true')
+    parser.add_argument('-i', '--input_file', dest='in_file', action='store', type=argparse.FileType('r'))
+    parser.add_argument('-o', '--output_file', dest='out_file', action='store', type=argparse.FileType('w'))
     args = parser.parse_args()
 
-    for line in parser.in_file:
-    	print 'test'
+    for line in args.in_file:
+    	args.out_file.write(str(entropy(line)) + '\t' + str(entropy_ideal(len(line))) + '\n')
