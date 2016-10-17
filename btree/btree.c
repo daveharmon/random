@@ -43,6 +43,7 @@ bTree* btCreate()
 
     bt->is_leaf = 1;
     bt->filled_keys = 0;
+    bt->fn = fn;
 
     return bt;
 }
@@ -58,13 +59,44 @@ void btDestroy(bTree* bt)
     free(bt);
 }
 
+/* return smallest index i in sorted array such that key <= a[i]
+ * (or n if there is no such index) */
+static int search_key(int n, const int *a, void *key, NodeCompareFunction* fn)
+{
+    int lo;
+    int hi;
+    int mid;
+
+    /* invariant: a[lo] < key <= a[hi] */
+    lo = -1;
+    hi = n;
+
+    while(lo + 1 < hi) {
+        mid = (lo+hi)/2;
+        if(0 == *fn(a[mid], key)) {
+            return mid;
+        } else if(-1 == *fn(a[mid], key)) {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
+
+    return hi;
+}
+
 /* searches tree for given key, returns null if not present */
 void* btSearch(bTree* bt, void *key, NodeCompareFunction* fn)
 {
- if (fn == null)
-    fn = &default_comparison_function;
+    if (fn == null)
+        fn = &default_comparison_function;
 
+    if (0 != bt->filled_keys){
+        int pos = search_key(bt->filled_keys, bt->keys, key, fn);
 
+        if (pos < b->filled_keys && 0 == fn(bt->keys[pos], key))
+    }
+    return null;
 }
 
 /* inserts a new element into a given tree, returns tree if this created a
