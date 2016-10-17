@@ -18,7 +18,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
 
-    for i in range(0, 10000):
+    for i in range(0, 1000000):
     	# this should be a random function to add a number of possible extensions
 
     	domain = generate_domain(i % 2016, i % 12, i % 30) + '.com'
