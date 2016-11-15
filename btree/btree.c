@@ -85,28 +85,103 @@ static int search_key(int n, const int *a, void *key, NodeCompareFunction* fn)
     return hi;
 }
 
-/* searches tree for given key, returns null if not present */
+/* searches tree for given key, returns NULL if not present */
 void* btSearch(bTree* bt, void *key, NodeCompareFunction* fn)
 {
-    if (fn == null)
+    if (fn == NULL)
         fn = &default_comparison_function;
 
     if (0 != bt->filled_keys){
         int pos = search_key(bt->filled_keys, bt->keys, key, fn);
 
         if (pos < b->filled_keys && 0 == fn(bt->keys[pos], key))
+            return bt->keys[pos];
+        else if (!bt->is_leaf)
+            return btSearch(bt->children[pos], key, fn);
     }
-    return null;
+    return NULL;
+}
+
+/*
+ * inserts a new key into the tree at an existing node
+ * returns the right sibling if this causes the node to split,
+ * puts median key in *median
+ */
+static *bTree bt_insert_internal(bTree *bt, void *key, void *median,
+    NodeCompareFunction* fn)
+{
+    int pos = search_key(bt->filled_keys, bt->keys, key, fn);
+    int mid;
+    bTree *right;
+
+    /* if the key doesn't already exist */
+    if (pos == bt->filled_keys) {
+        if (bt->is_leaf) {
+            /* everybody above pos moves up one space */
+            memmove(bt->keys[pos+1], bt->keys[pos], sizeof(*(bt->keys)) *
+                (bt->numKeys - pos));
+            bt->keys[pos] = key;
+            bt->filled_keys++;
+        } else {
+            /* insert in child */
+            right = bt_insert_internal(bt, key, &mid, fn);
+
+            /* we may need to insert a new key into the subtree */
+            if (right) {
+                /* every key above pos moves up one space */
+                memmove(bt->keys[pos+1], bt->keys[pos], sizeof(*(bt->keys))
+                    * (bt->filled_keys - pos));
+                /* new kid goes in pos + 1 */
+                memmove(bt->kids[pos+2], bt->kids[pos+1], sizeof(*(bt->keys))
+                    * (bt->filled_keys - pos));
+
+                b->keys[pos] = mid;
+                b->children[pos+1] = right;
+                b->filled_keys++;
+            }
+        }
+
+        /* we waste a little space by splitting now rather than on next insert */
+        if (b->filled_keys >= MAX_KEYS) {
+            mid = bt->filled_keys/2;
+
+            median = bt->keys[mid];
+        }
+    }
+
+    return NULL;
 }
 
 /* inserts a new element into a given tree, returns tree if this created a
  * new node, false if it just appended to another node */
 int btInsert(bTree* bt, void *key, NodeCompareFunction* fn)
 {
- if (fn == null)
-    fn = &default_comparison_function;
+    if (fn == NULL)
+        fn = &default_comparison_function;
 
+    bTree *left;   /* new left child */
+    bTree *right;   /* new right child */
+    int median;
 
+    right = btInsertInternal(bt, key, &median, fn);
+
+    if(right) {
+        /* basic issue here is that we are at the root
+         * so if we split, we have to make a new root */
+
+        left = malloc(sizeof(bTree));
+        assert(left);
+
+        /* copy root to b1 */
+        memmove(left, bt, sizeof(*bt));
+
+        /* make root point to b1 and b2 */
+        bt->filled_keys = 1;
+        bt->is_leaf = 0;
+        bt->keys[0] = median;
+        bt->children[0] = left;
+        bt->children[1] = right;
+    }
 }
 
 /* print the structure of the b-tree in a manner readable by humans
