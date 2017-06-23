@@ -30,10 +30,10 @@ slist_t*
 skiplist_init(slist_t *list)
 {
     int i;
-    snode_t *header = (snode_t *)malloc(sizeof(snode_t));
+    snode_t *header = malloc(sizeof(snode_t));
     list->header = header;
     header->key = INT_MAX;
-    header->forward = (snode_t **)malloc(sizeof(snode*) * (SKIPLIST_MAX_LEVEL));
+    header->forward = malloc(sizeof(snode_t*) * (SKIPLIST_MAX_LEVEL));
     for (i = 0; i < SKIPLIST_MAX_LEVEL; i++) {
         header->forward[i] = list->header;
     }
