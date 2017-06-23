@@ -108,3 +108,36 @@ insert(slist_t* list, void* search_key, void* new_value)
     }
     return 0;
 }
+
+int
+delete(slist_t* list, void* search_key)
+{
+    if (!list || !list->header)
+        return -1;
+
+    int i;
+
+    snode_t* update[SKIPLIST_MAX_LEVEL];
+    snode_t* x = list->header;
+
+    for (i = list->level; i > 0; i--) {
+        while (x->forward[i]->key < search_key)
+            x = x->forward[i];
+        update[i] = x;
+    }
+    x = x->forward[1];
+
+    if (x->key == search_key){
+        for (i = 1; i < list->level; i++) {
+            if (update[i]->forward[i] == x)
+                break;
+            update[i]->forward[i] = x->forward[i];
+        }
+        free(x);
+        while (list->level > 1 && list->header->forward[list->level] == NULL) {
+            list->level--;
+        }
+    }
+
+    return 0;
+}
